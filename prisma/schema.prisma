@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model messages {
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_active Boolean @default(true)
+  was_sent Boolean @default(false)
+  sent_at DateTime?
+  message   String
+  status    MessageStatus   @default(pending)
+  denied_at DateTime?
+  denied_reason String?
+  payment   payments?
+
+}
+
+model payments {
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_active Boolean @default(true)
+  name      String
+  tax_id    String
+  amount    Decimal @db.Decimal(9, 2)
+  status    PaymentStatus   @default(pending)
+  payed_at DateTime?
+  expires_at DateTime?
+  provider_reference String?
+  provider_name String?
+  provider_data Json?
+  payment_code String
+  payment_image_url String?
+
+  message_id Int? @unique
+  message   messages? @relation(fields: [message_id], references: [id])
+}
+
+enum MessageStatus {
+  pending
+  sent
+  denied
+  error
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  expired
+}
